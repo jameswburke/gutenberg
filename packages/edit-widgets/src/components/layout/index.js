@@ -6,29 +6,29 @@ import {
 	Popover,
 	SlotFillProvider,
 	FocusReturnProvider,
+	Panel,
 } from '@wordpress/components';
-import { useState } from '@wordpress/element';
 import {
 	BlockEditorKeyboardShortcuts,
-	Inserter as BlockEditorInserter,
+	BlockInspector,
+	WritingFlow,
+	ObserveTyping,
+	ButtonBlockerAppender,
+	BlockList,
 } from '@wordpress/block-editor';
 import { useViewportMatch } from '@wordpress/compose';
 import { InterfaceSkeleton } from '@wordpress/interface';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
  */
 import Header from '../header';
-import Sidebar from '../sidebar';
-import WidgetAreas from '../widget-areas';
 import Notices from '../notices';
 import KeyboardShortcuts from '../keyboard-shortcuts';
-import Inserter from '../inserter';
-
-const disabledInserterToggleProps = { isPrimary: true, disabled: true };
+import WidgetAreasBlockEditorProvider from '../widget-areas-block-editor-provider';
 
 function Layout( { blockEditorSettings } ) {
-	const [ selectedArea, setSelectedArea ] = useState( null );
 	const isMobile = useViewportMatch( 'medium', '<' );
 
 	return (
@@ -38,43 +38,49 @@ function Layout( { blockEditorSettings } ) {
 			<SlotFillProvider>
 				<DropZoneProvider>
 					<FocusReturnProvider>
-						<InterfaceSkeleton
-							header={ <Header /> }
-							sidebar={ ! isMobile && <Sidebar /> }
-							content={
-								<>
-									<KeyboardShortcuts />
-									<Notices />
-									<Popover.Slot name="block-toolbar" />
-									<div
-										className="edit-widgets-layout__content"
-										tabIndex="-1"
-										onFocus={ () => {
-											setSelectedArea( null );
-										} }
-									>
-										<WidgetAreas
-											selectedArea={ selectedArea }
-											setSelectedArea={ setSelectedArea }
-											blockEditorSettings={
-												blockEditorSettings
-											}
-										/>
-									</div>
-									{ selectedArea === null && (
-										<Inserter>
-											<BlockEditorInserter
-												toggleProps={
-													disabledInserterToggleProps
-												}
-											/>
-										</Inserter>
-									) }
-								</>
-							}
-						/>
-
-						<Popover.Slot />
+						<WidgetAreasBlockEditorProvider
+							blockEditorSettings={ blockEditorSettings }
+						>
+							<InterfaceSkeleton
+								header={ <Header /> }
+								sidebar={
+									! isMobile && (
+										<div className="edit-widgets-sidebar">
+											<Panel
+												header={ __( 'Block Areas' ) }
+											>
+												<BlockInspector
+													showNoBlockSelectedMessage={
+														false
+													}
+												/>
+											</Panel>
+										</div>
+									)
+								}
+								content={
+									<>
+										<KeyboardShortcuts />
+										<BlockEditorKeyboardShortcuts />
+										<Notices />
+										<Popover.Slot name="block-toolbar" />
+										<div
+											className="edit-widgets-layout__content"
+											tabIndex="-1"
+										>
+											<div className="editor-styles-wrapper">
+												<WritingFlow>
+													<ObserveTyping>
+														<BlockList className="edit-widgets-main-block-list" />
+													</ObserveTyping>
+												</WritingFlow>
+											</div>
+										</div>
+									</>
+								}
+							/>
+							<Popover.Slot />
+						</WidgetAreasBlockEditorProvider>
 					</FocusReturnProvider>
 				</DropZoneProvider>
 			</SlotFillProvider>
