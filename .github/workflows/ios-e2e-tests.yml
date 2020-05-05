@@ -20,7 +20,7 @@ jobs:
           ${{ runner.os }}-node-
 
     - name: Install dependencies
-    - run: |
+      run: |
         nvm install
         npm ci
 
