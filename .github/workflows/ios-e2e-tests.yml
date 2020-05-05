@@ -50,10 +50,10 @@ jobs:
           ${{ runner.os }}-pods-
 
     - name: Build (if needed)
-      run: test -e packages/react-native-editor/ios/build/gutenberg/Build/Products/Release-iphonesimulator/GutenbergDemo.app || SKIP_BUNDLING=true npm run test:e2e:build-app:ios
+      run: test -e packages/react-native-editor/ios/build/gutenberg/Build/Products/Release-iphonesimulator/GutenbergDemo.app || SKIP_BUNDLING=true npm run native test:e2e:build-app:ios
     
     - name: Bundle iOS
-      run: yarn test:e2e:bundle:ios
+      run: npm run native test:e2e:bundle:ios
 
     - name: Run iOS Device Tests
       run: npm run native test:e2e:ios
