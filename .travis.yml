@@ -284,10 +284,6 @@ jobs:
           # of least privilege.
           sudo -E sudo -u $USER -E bash -c "${ANDROID_HOME}/emulator/${EMU_COMMAND} -avd test ${ANDROID_AUDIO} ${EMU_PARAMS} &"
 
-        # Switch back to our target JDK version to build and run tests
-        - JDK="${TARGET_JDK}"
-        - source ~/.install-jdk-travis.sh
-
         # Build the app (while the emulator is starting)
         - npm ci --no-progress
         - npm run native test:e2e:build-app:android
