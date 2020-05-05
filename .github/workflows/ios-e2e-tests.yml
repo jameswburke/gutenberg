@@ -49,11 +49,11 @@ jobs:
           ${{ runner.os }}-pods-${{ hashFiles('packages/react-native-editor/ios/Gemfile.lock') }}-
           ${{ runner.os }}-pods-
 
-    - name: Build (if needed)
-      run: test -e packages/react-native-editor/ios/build/gutenberg/Build/Products/Release-iphonesimulator/GutenbergDemo.app || SKIP_BUNDLING=true npm run native test:e2e:build-app:ios
-    
     - name: Bundle iOS
       run: npm run native test:e2e:bundle:ios
+
+    - name: Build (if needed)
+      run: test -e packages/react-native-editor/ios/build/gutenberg/Build/Products/Release-iphonesimulator/GutenbergDemo.app || SKIP_BUNDLING=true npm run native test:e2e:build-app:ios
 
     - name: Run iOS Device Tests
       run: TEST_RN_PLATFORM=ios npm run native device-tests:local
