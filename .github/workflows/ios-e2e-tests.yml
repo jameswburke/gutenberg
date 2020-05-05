@@ -56,7 +56,7 @@ jobs:
       run: npm run native test:e2e:bundle:ios
 
     - name: Run iOS Device Tests
-      run: npm run native test:e2e:ios
+      run: TEST_RN_PLATFORM=ios npm run device-tests:local
 
     - name: Prepare build cache
       run: rm ios/build/gutenberg/Build/Products/Release-iphonesimulator/GutenbergDemo.app/main.jsbundle
