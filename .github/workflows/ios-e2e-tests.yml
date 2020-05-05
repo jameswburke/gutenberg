@@ -1,0 +1,61 @@
+name: iOS e2e tests
+
+on:
+  push:
+    branches: [ try/github-actions-ios-ci ]
+
+jobs:
+  build:
+    runs-on: macos-10.15
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Restore npm Cache
+      uses: actions/cache@v1
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+    - run: |
+        nvm install
+        npm ci
+
+    - name: Prepare build cache key
+      run: find package-lock.json packages/react-native-editor/ios packages/react-native-aztec/ios packages/react-native-bridge/ios -type f -print0 | sort -z | xargs -0 shasum | tee ios-checksums.txt
+
+    - name: Restore Build Cache
+      uses: actions/cache@v1
+      with:
+        path: packages/react-native-editor/ios/build/gutenberg/Build/Products/Release-iphonesimulator/GutenbergDemo.app
+        key: ${{ runner.os }}-ios-build-${{ hashFiles('ios-checksums.txt') }}
+    
+    - name: Restore Pods
+      uses: actions/cache@master
+      with:
+        path: |
+          packages/react-native-editor/ios/Pods
+          ~/Library/Caches/CocoaPods
+          ~/.cocoapods/repos/trunk
+          packages/react-native-editor/ios/vendor
+        key: ${{ runner.os }}-pods-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/Podfile.lock') }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-pods-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/Podfile.lock') }}-${{ hashFiles('**/package-lock.json') }}
+          ${{ runner.os }}-pods-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/Podfile.lock') }}-
+          ${{ runner.os }}-pods-${{ hashFiles('**/Gemfile.lock') }}-
+          ${{ runner.os }}-pods-
+
+    - name: Build (if needed)
+      run: test -e packages/react-native-editor/ios/build/gutenberg/Build/Products/Release-iphonesimulator/GutenbergDemo.app || SKIP_BUNDLING=true npm run test:e2e:build-app:ios
+    
+    - name: Bundle iOS
+      run: yarn test:e2e:bundle:ios
+
+    - name: Run iOS Device Tests
+      run: npm run native test:e2e:ios
+
+    - name: Prepare build cache
+      run: rm ios/build/gutenberg/Build/Products/Release-iphonesimulator/GutenbergDemo.app/main.jsbundle
