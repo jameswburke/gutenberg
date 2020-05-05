@@ -53,7 +53,7 @@ jobs:
       run: npm run native test:e2e:bundle:ios
 
     - name: Build (if needed)
-      run: test -e packages/react-native-editor/ios/build/gutenberg/Build/Products/Release-iphonesimulator/GutenbergDemo.app || SKIP_BUNDLING=true npm run native test:e2e:build-app:ios
+      run: test -e packages/react-native-editor/ios/build/gutenberg/Build/Products/Release-iphonesimulator/GutenbergDemo.app/GutenbergDemo || SKIP_BUNDLING=true npm run native test:e2e:build-app:ios
 
     - name: Run iOS Device Tests
       run: TEST_RN_PLATFORM=ios npm run native device-tests:local
