@@ -234,7 +234,7 @@ jobs:
         - ANDROID_BUILD_TOOLS_VERSION=29.0.6
         - ANDROID_ABI=armeabi-v7a # or x86_64
         - ANDROID_EMU_FLAVOR=google_apis # or default
-        - ADB_INSTALL_TIMEOUT=8
+        - ADB_INSTALL_TIMEOUT=20 # minutes (2 minutes by default)
       android:
         components:
           - tools
@@ -259,8 +259,9 @@ jobs:
       install:
         - npm ci
       before_script:
-        - $ANDROID_HOME/emulator/emulator -avd Pixel_28 -no-audio -verbose -no-snapshot -no-window -selinux permissive -qemu -m 2048 &
+        - $ANDROID_HOME/emulator/emulator -avd Pixel_28 -no-skin -no-audio -verbose -no-window -m 2048 &
         - android-wait-for-emulator
+        - adb shell setprop dalvik.vm.dexopt-flags v=n,o=v
         - adb shell input keyevent 82 &
       script:
         - npm run native test:e2e:android:local
