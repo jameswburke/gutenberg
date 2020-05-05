@@ -289,7 +289,7 @@ jobs:
         - source ~/.install-jdk-travis.sh
 
         # Build the app (while the emulator is starting)
-        - npm ci
+        - npm ci --no-progress
         - npm run native test:e2e:build-app:android
       before_script:
         # Wait for emulator to be ready
