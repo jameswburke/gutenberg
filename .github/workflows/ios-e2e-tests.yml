@@ -15,7 +15,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
 
@@ -42,11 +42,11 @@ jobs:
           ~/Library/Caches/CocoaPods
           ~/.cocoapods/repos/trunk
           packages/react-native-editor/ios/vendor
-        key: ${{ runner.os }}-pods-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/Podfile.lock') }}-${{ hashFiles('**/package-lock.json') }}
+        key: ${{ runner.os }}-pods-${{ hashFiles('packages/react-native-editor/ios/Gemfile.lock') }}-${{ hashFiles('packages/react-native-editor/ios/Podfile.lock') }}-${{ hashFiles('package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-pods-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/Podfile.lock') }}-${{ hashFiles('**/package-lock.json') }}
-          ${{ runner.os }}-pods-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/Podfile.lock') }}-
-          ${{ runner.os }}-pods-${{ hashFiles('**/Gemfile.lock') }}-
+          ${{ runner.os }}-pods-${{ hashFiles('packages/react-native-editor/ios/Gemfile.lock') }}-${{ hashFiles('packages/react-native-editor/ios/Podfile.lock') }}-${{ hashFiles('package-lock.json') }}
+          ${{ runner.os }}-pods-${{ hashFiles('packages/react-native-editor/ios/Gemfile.lock') }}-${{ hashFiles('packages/react-native-editor/ios/Podfile.lock') }}-
+          ${{ runner.os }}-pods-${{ hashFiles('packages/react-native-editor/ios/Gemfile.lock') }}-
           ${{ runner.os }}-pods-
 
     - name: Build (if needed)
@@ -56,7 +56,7 @@ jobs:
       run: npm run native test:e2e:bundle:ios
 
     - name: Run iOS Device Tests
-      run: TEST_RN_PLATFORM=ios npm run device-tests:local
+      run: TEST_RN_PLATFORM=ios npm run native device-tests:local
 
     - name: Prepare build cache
-      run: rm ios/build/gutenberg/Build/Products/Release-iphonesimulator/GutenbergDemo.app/main.jsbundle
+      run: rm packages/react-native-editor/ios/build/gutenberg/Build/Products/Release-iphonesimulator/GutenbergDemo.app/main.jsbundle
