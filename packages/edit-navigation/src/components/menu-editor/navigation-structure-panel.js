@@ -17,6 +17,7 @@ export default function NavigationStructurePanel( { blocks, initialOpen } ) {
 						blocks={ blocks }
 						selectedBlockClientId={ blocks[ 0 ].clientId }
 						selectBlock={ () => {} }
+						withBlockNavigationSlots={ true }
 						showNestedBlocks
 						showAppender
 					/>
