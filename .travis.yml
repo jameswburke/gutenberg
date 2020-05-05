@@ -230,7 +230,7 @@ jobs:
         - TEST_ENV=sauce
         - JEST_JUNIT_OUTPUT="reports/test-results/android-test-results.xml"
         - ANDROID_COMPILE_API=29
-        - ANDROID_API=28
+        - ANDROID_API=25
         - ANDROID_BUILD_TOOLS_VERSION=29.0.6
         - ANDROID_ABI=armeabi-v7a # or x86_64
         - ANDROID_EMU_FLAVOR=default # or google_apis
@@ -249,16 +249,9 @@ jobs:
         - echo 'count=0' > ~/.android/repositories.cfg
         - yes | sdkmanager "tools"
         - yes | sdkmanager "emulator"
-        - sdkmanager --list --verbose
-        - android list sdk --no-ui --all --extended
-        - yes | android update sdk --no-ui --filter sys-img-$ANDROID_ABI
-        #update sdk platform for emulator
-        - yes | android update sdk -a --no-ui --filter $ANDROID_API
-        #update the emulator sys image
-        - yes | android update sdk -a --no-ui --filter sys-img-$ANDROID_ABI-android-$ANDROID_API
+        - yes | sdkmanager "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI"
         - sdkmanager --list --verbose
         - android list target
-        - yes | sdkmanager "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI"
         - echo no | $ANDROID_HOME/tools/bin/avdmanager create avd --force -n Pixel_28 --package "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI" -c 10M
         - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
         - nvm install
@@ -267,8 +260,7 @@ jobs:
         - npm ci
       before_script:
         - $ANDROID_HOME/emulator/emulator -avd Pixel_28 -no-audio -verbose -no-snapshot -no-window -selinux permissive -qemu -m 2048 &
-        - chmod +x ./android-wait-for-emulator.sh
-        - ./android-wait-for-emulator.sh
+        - android-wait-for-emulator
         - adb shell input keyevent 82 &
       script:
         - npm run native test:e2e:android:local
