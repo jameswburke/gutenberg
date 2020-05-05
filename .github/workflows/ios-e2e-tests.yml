@@ -11,9 +11,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v1
-
     - name: Restore npm Cache
       uses: actions/cache@v1
       with:
@@ -24,6 +21,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        source ~/.nvm/nvm.sh
         nvm install
         npm ci
 
