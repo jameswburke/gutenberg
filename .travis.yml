@@ -260,20 +260,19 @@ jobs:
         - yes | sdkmanager --licenses >/dev/null
 
         # Download SDK tools
-        - yes | sdkmanager "platform-tools"
-        - yes | sdkmanager "tools" # A second time per Travis docs, gets latest versions
-        - yes | sdkmanager "build-tools;$ANDROID_BUILD_TOOLS_VERSION" # Implicit gradle dependency - gradle drives changes
-        - yes | sdkmanager "platforms;android-$ANDROID_COMPILE_API" # We need the API of the current compileSdkVersion from gradle.properties
+        - yes | sdkmanager "platform-tools" >/dev/null
+        - yes | sdkmanager "tools" >/dev/null # A second time per Travis docs, gets latest versions
+        - yes | sdkmanager "build-tools;$ANDROID_BUILD_TOOLS_VERSION" >/dev/null # Implicit gradle dependency - gradle drives changes
+        - yes | sdkmanager "platforms;android-$ANDROID_COMPILE_API" >/dev/null # We need the API of the current compileSdkVersion from gradle.properties
         - sdkmanager --list | head -15
-        - android list target
         - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
         - nvm install
         - echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
       install:
         # Download required emulator tools
-        - yes | sdkmanager "platforms;android-$ANDROID_API" # We need the API of the emulator we will run
-        - yes | sdkmanager "emulator"
-        - yes | sdkmanager "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI" # install our emulator
+        - yes | sdkmanager "platforms;android-$ANDROID_API" >/dev/null # We need the API of the emulator we will run
+        - yes | sdkmanager "emulator" >/dev/null
+        - yes | sdkmanager "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI" >/dev/null # install our emulator
 
         # Create an Android emulator
         - echo no | avdmanager create avd --force -n test -k "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI" -c 10M
