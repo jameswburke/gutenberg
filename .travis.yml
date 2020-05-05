@@ -212,10 +212,10 @@ jobs:
         - $( npm bin )/wp-scripts test-e2e --config=./packages/e2e-tests/jest.config.js --cacheDirectory="$HOME/.jest-cache" --runTestsByPath $( awk 'NR % 4 == 3' < ~/.jest-e2e-tests )
 
     - name: E2E Mobile tests (Android)
-      os: linux
-      language: android
-      jdk: oraclejdk8
-      sudo: required
+      language: bash
+      # ignored on non-linux platforms, but bionic is required for nested virtualization
+      dist: bionic
+      sudo: true
       before_cache:
         - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
         - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
@@ -229,58 +229,68 @@ jobs:
         - TEST_RN_PLATFORM=android
         - TEST_ENV=sauce
         - JEST_JUNIT_OUTPUT="reports/test-results/android-test-results.xml"
+        - ANDROID_TOOLS_URL="https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip"
+        - ANDROID_HOME=${HOME}/android-sdk
         - ANDROID_COMPILE_API=28
-        - ANDROID_API=25
         - ANDROID_BUILD_TOOLS_VERSION=28.0.3
-        - ANDROID_ABI=armeabi-v7a # or x86_64
-        - ANDROID_EMU_FLAVOR=google_apis # or default
         - ADB_INSTALL_TIMEOUT=20 # minutes (2 minutes by default)
-      android:
-        components:
-          - tools
-          - tools
-          - platform-tools
-          - extra-android-m2repository
-          - extra-android-support
-          - build-tools-$ANDROID_BUILD_TOOLS_VERSION
-          - android-$ANDROID_API
-          - android-$COMPILE_API
+        # these can be overridden in a build matrix if we wanted to test multiple builds
+        - ANDROID_API=29
+        - ANDROID_AUDIO=-no-audio
+        - ANDROID_ABI=x86_64 # or armeabi-v7a
+        - ANDROID_EMU_FLAVOR=default # or google_apis
       before_install:
+        # Set up JDK 8 for Android SDK - Java is universally needed: codacy, unit tests, emulators
+        - sudo apt update
+        - sudo apt install -y openjdk-8-jdk
+        - export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+        - echo $JAVA_HOME
+        - ls -la $JAVA_HOME
+        - export PATH=${PATH}:${JAVA_HOME}/bin
+        - wget -q "${ANDROID_TOOLS_URL}" -O android-sdk-tools.zip
+        - unzip -q android-sdk-tools.zip -d ${ANDROID_HOME}
+        - rm android-sdk-tools.zip
+        - mkdir ~/.android
         - echo 'count=0' > ~/.android/repositories.cfg
-        - yes | sdkmanager "tools"
-        - yes | sdkmanager "emulator"
-        - sdkmanager --list --verbose
+        - yes | sdkmanager --licenses >/dev/null
+        - yes | sdkmanager "platform-tools"
+        - yes | sdkmanager "tools" # A second time per Travis docs, gets latest versions
+        - yes | sdkmanager "build-tools;$ANDROID_BUILD_TOOLS_VERSION" # Implicit gradle dependency - gradle drives changes
+        - yes | sdkmanager "platforms;android-$ANDROID_COMPILE_API" # We need the API of the current compileSdkVersion from gradle.properties
+        - sdkmanager --list | head -15
         - android list target
-        - yes | sdkmanager "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI"
-        - echo no | $ANDROID_HOME/tools/bin/avdmanager create avd --force -n Emu_25 --package "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI" -c 100M
         - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
         - nvm install
         - echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
       install:
-        - npm ci
-      before_script:
-        - $ANDROID_HOME/emulator/emulator -avd Emu_25 -no-skin -no-audio -verbose -no-window &
-        - android-wait-for-emulator
-        - adb shell setprop dalvik.vm.dexopt-flags v=n,o=v
+        # Download required emulator tools
+        - yes | sdkmanager "platforms;android-$ANDROID_API" # We need the API of the emulator we will run
+        - yes | sdkmanager "emulator"
+        - yes | sdkmanager "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI" # install our emulator
+
+        # Set up KVM on linux for hardware acceleration. Manually here so it only happens for emulator tests, takes ~30s
+        - sudo -E apt-get -yq --no-install-suggests --no-install-recommends install bridge-utils libpulse0 libvirt-bin qemu-kvm virtinst ubuntu-vm-builder
+        - sudo adduser $USER libvirt
+        - sudo adduser $USER kvm
+
+        # Create an Android emulator
+        - echo no | avdmanager create avd --force -n test -k "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI" -c 10M
+        - |
+          EMU_PARAMS="-verbose -no-snapshot -no-window -camera-back none -camera-front none -selinux permissive -qemu -m 2048"
+          EMU_COMMAND="emulator"
+          # This double "sudo" monstrosity is used to have Travis execute the
+          # emulator with its new group permissions and help preserve the rule
+          # of least privilege.
+          sudo -E sudo -u $USER -E bash -c "${ANDROID_HOME}/emulator/${EMU_COMMAND} -avd test ${ANDROID_AUDIO} ${EMU_PARAMS} &"
+
+        # Wait for emulator to be ready
+        - chmod +x ./bin/android-wait-for-emulator.sh
+        - ./bin/android-wait-for-emulator.sh
         - adb shell input keyevent 82 &
+      before_script:
+        - npm ci
       script:
         - npm run native test:e2e:android:local
-
-    - name: E2E Mobile tests (iOS)
-      os: osx
-      language: objective-c
-      osx_image: xcode11.3
-      env:
-        - TEST_RN_PLATFORM=ios
-        - TEST_ENV=sauce
-      before_install:
-        - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-        - source ~/.nvm/nvm.sh
-        - nvm install
-      install:
-        - npm ci
-      script:
-        - npm run native test:e2e:ios:local
 
     - stage: deploy
       if: (NOT type IN (pull_request)) AND (branch = master)
