@@ -34,8 +34,6 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-    packages:
-      - libstdc++-4.9-dev
 
 before_install:
   - nvm install --latest-npm
@@ -212,7 +210,7 @@ jobs:
         - $( npm bin )/wp-scripts test-e2e --config=./packages/e2e-tests/jest.config.js --cacheDirectory="$HOME/.jest-cache" --runTestsByPath $( awk 'NR % 4 == 3' < ~/.jest-e2e-tests )
 
     - name: E2E Mobile tests (Android)
-      language: generic
+      language: bash
       # ignored on non-linux platforms, but bionic is required for nested virtualization
       dist: bionic
       sudo: true
