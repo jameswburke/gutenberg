@@ -101,9 +101,8 @@ function getTipByContext( tipContext ) {
 
 function Tips( { tipContext } ) {
 	// Return a contextual tip when it's appropriate.
-	const contextualTip = getTipByContext( tipContext );
-	if ( contextualTip ) {
-		return <Tip>{ contextualTip }</Tip>;
+	if ( tipContext && contextualTips[ tipContext ] ) {
+		return <Tip>{ contextualTips[ tipContext ] }</Tip>;
 	}
 
 	const [ randomIndex ] = useState(
