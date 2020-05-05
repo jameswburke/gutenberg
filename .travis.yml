@@ -249,12 +249,14 @@ jobs:
         - echo 'count=0' > ~/.android/repositories.cfg
         - yes | sdkmanager "tools"
         - yes | sdkmanager "emulator"
+        - sdkmanager --list --verbose
         - android list sdk --no-ui --all --extended
         - yes | android update sdk --no-ui --filter sys-img-$ANDROID_ABI
         #update sdk platform for emulator
         - yes | android update sdk -a --no-ui --filter $ANDROID_API
         #update the emulator sys image
         - yes | android update sdk -a --no-ui --filter sys-img-$ANDROID_ABI-android-$ANDROID_API
+        - sdkmanager --list --verbose
         - android list target
         - yes | sdkmanager "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI"
         - echo no | $ANDROID_HOME/tools/bin/avdmanager create avd --force -n Pixel_28 --package "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI" -c 10M
