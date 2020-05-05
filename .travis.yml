@@ -249,8 +249,8 @@ jobs:
         - echo 'count=0' > ~/.android/repositories.cfg
         - yes | sdkmanager "tools"
         - yes | sdkmanager "emulator"
-        - yes | sdkmanager "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI"
         - sdkmanager --list --verbose
+        #- yes | sdkmanager "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI"
         - android list target
         - echo no | $ANDROID_HOME/tools/bin/avdmanager create avd --force -n Pixel_28 --package "system-images;android-$ANDROID_API;$ANDROID_EMU_FLAVOR;$ANDROID_ABI" -c 10M
         - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
